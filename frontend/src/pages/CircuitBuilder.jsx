@@ -145,6 +145,9 @@ const CircuitBuilder = ({ gates, setGates, wires, setWires }) => {
   // Truth table pagination
   const [ttPage, setTtPage] = useState(0);
   const TT_ROWS_PER_PAGE = 16;
+  
+  // Database state
+  const [dbCircuits, setDbCircuits] = useState([]);
 
   const getPointerPosition = (e) => {
     const stage = stageRef.current;
@@ -154,6 +157,56 @@ const CircuitBuilder = ({ gates, setGates, wires, setWires }) => {
   };
 
   const API_URL = "http://localhost:5000/api";
+
+  useEffect(() => {
+    fetch(`${API_URL}/circuits`)
+      .then(res => res.json())
+      .then(data => setDbCircuits(data.circuits || []))
+      .catch(err => console.error("Could not load DB circuits", err));
+  }, []);
+
+  const saveToDB = async () => {
+    const name = prompt("Enter a name to save this circuit to the Database:");
+    if (!name) return;
+    try {
+      const res = await fetch(`${API_URL}/circuits/save`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, gates, wires })
+      });
+      const data = await res.json();
+      if (data.status === "success") {
+        alert(`Successfully saved to database as ID: ${data.id}`);
+        fetch(`${API_URL}/circuits`)
+          .then(r => r.json())
+          .then(d => setDbCircuits(d.circuits || []));
+      } else {
+        alert("Error saving: " + data.error);
+      }
+    } catch (err) {
+      console.error("Failed to save to db", err);
+      alert("Failed to save to Database.");
+    }
+  };
+
+  const loadFromDB = async (id) => {
+    if (!id) return;
+    try {
+      const res = await fetch(`${API_URL}/circuits/${id}`);
+      const data = await res.json();
+      if (data.gates && data.wires) {
+        setGates(data.gates);
+        setWires(data.wires);
+        setEvalValues({});
+        setInsights(null);
+      } else {
+        alert("Error loading: " + data.error);
+      }
+    } catch (err) {
+      console.error("Failed to load from db", err);
+      alert("Failed to load from Database.");
+    }
+  };
 
   const calculateDepths = () => {
     const depths = {};
@@ -414,8 +467,16 @@ const CircuitBuilder = ({ gates, setGates, wires, setWires }) => {
             </select>
             <div style={{display: 'flex', gap: '0.5rem'}}>
                <button className="btn" style={{flex: 1}} onClick={evaluateCircuit} disabled={isEvaluating}>{isEvaluating ? '⚡ Running...' : '⚡ Evaluate State'}</button>
-               <button className="btn" style={{flex: 1}} onClick={()=>{ localStorage.setItem('circuit_save', JSON.stringify({gates,wires})); alert('Saved!'); }}>💾 Save</button>
-               <button className="btn" style={{flex: 1}} onClick={()=>{ const d = localStorage.getItem('circuit_save'); if(d) { const p = JSON.parse(d); setGates(p.gates); setWires(p.wires); }}}>📂 Load</button>
+               <button className="btn" style={{flex: 1}} onClick={saveToDB}>💾 Save to DB</button>
+               <select 
+                 className="btn" 
+                 style={{flex: 1, padding: '0 0.5rem'}} 
+                 onChange={e => { loadFromDB(e.target.value); e.target.value=''; }} 
+                 defaultValue=""
+               >
+                 <option value="" disabled>📂 Load DB...</option>
+                 {dbCircuits.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+               </select>
                <button className="btn" style={{flex: 1, borderColor: '#ef4444', color: '#ef4444'}} onClick={()=>{setGates([]); setWires([]); setInsights(null); setEvalValues({});}}>🗑 Clear</button>
             </div>
         </div>

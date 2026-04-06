@@ -1,10 +1,24 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 import itertools
 import copy
 
 app = Flask(__name__)
 CORS(app)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///circuits.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+class SavedCircuit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    gates = db.Column(db.JSON, nullable=False)
+    wires = db.Column(db.JSON, nullable=False)
+
+with app.app_context():
+    db.create_all()
 
 GATE_DELAYS = {'AND': 1.0, 'OR': 1.0, 'NAND': 1.0, 'NOR': 1.0, 'NOT': 0.5, 'XOR': 1.5, 'INPUT': 0, 'OUTPUT': 0}
 
@@ -269,6 +283,41 @@ def simulate_timing():
         timeline.append(values)
         
     return jsonify({"timeline": timeline})
+
+@app.route("/api/circuits/save", methods=["POST"])
+def save_circuit():
+    data = request.json
+    name = data.get("name")
+    gates = data.get("gates", [])
+    wires = data.get("wires", [])
+    
+    if not name:
+        return jsonify({"error": "Circuit name is required"}), 400
+        
+    circuit = SavedCircuit(name=name, gates=gates, wires=wires)
+    db.session.add(circuit)
+    db.session.commit()
+    
+    return jsonify({"status": "success", "id": circuit.id, "name": circuit.name})
+
+@app.route("/api/circuits", methods=["GET"])
+def list_circuits():
+    circuits = SavedCircuit.query.all()
+    results = [{"id": c.id, "name": c.name} for c in circuits]
+    return jsonify({"circuits": results})
+
+@app.route("/api/circuits/<int:circuit_id>", methods=["GET"])
+def get_circuit(circuit_id):
+    circuit = SavedCircuit.query.get(circuit_id)
+    if not circuit:
+        return jsonify({"error": "Circuit not found"}), 404
+        
+    return jsonify({
+        "id": circuit.id,
+        "name": circuit.name,
+        "gates": circuit.gates,
+        "wires": circuit.wires
+    })
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
