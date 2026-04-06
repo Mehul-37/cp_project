@@ -1,0 +1,159 @@
+:root {
+  --sidebar-bg: rgba(13, 13, 21, 0.65);
+}
+
+.cb-layout {
+  display: flex;
+  height: calc(100vh - 73px); /* Minus navbar approx */
+  width: 100%;
+}
+
+.cb-sidebar, .cb-panel {
+  width: 300px;
+  background-color: var(--surface-color);
+  border-right: 1px solid var(--border-color);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  box-shadow: var(--shadow-base);
+  z-index: 10;
+}
+
+.cb-panel {
+  border-right: none;
+  border-left: 1px solid var(--border-color);
+  overflow-y: auto;
+}
+
+.cb-sidebar h3, .cb-panel h3 {
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--primary-accent);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Gate Palette */
+.gate-palette {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  overflow-y: auto;
+}
+
+.palette-item {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: grab;
+  transition: all 0.2s;
+}
+
+.palette-item:hover {
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.palette-symbol {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.palette-item span {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Canvas Area */
+.cb-canvas-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background-image: 
+    linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+/* Right Panel Controls */
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn {
+  width: 100%;
+}
+
+/* Insights Container (replacing Truth Table) */
+.insights-container {
+  margin-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* allows flex children to shrink */
+}
+
+.insights-container h4 {
+  margin-bottom: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+.insights-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.5rem; /* Space for scrollbar */
+}
+
+.table-wrapper {
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+th {
+  background: rgba(0, 212, 255, 0.1);
+  padding: 0.5rem;
+  color: var(--primary-accent);
+  border-bottom: 1px solid var(--border-color);
+}
+
+td {
+  padding: 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+td.high {
+  color: var(--success-color);
+  font-weight: bold;
+}
+
+td.low {
+  color: var(--danger-color);
+}
